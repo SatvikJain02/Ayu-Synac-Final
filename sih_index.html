@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AYU-Sync Prototype</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #2563eb; 
+            --primary-hover: #1d4ed8;
+            --secondary-color: #f97316; 
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            background: linear-gradient(-45deg, #e0f2fe, #fff7ed, #e0e7ff, #f0fdf4);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .auth-view { width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px; animation: fadeInUp 0.5s ease-out; }
+        .auth-container {
+            width: 100%; max-width: 420px; background: var(--card-bg);
+            padding: 40px; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        .auth-container h2 { text-align: center; margin-bottom: 30px; color: var(--text-dark); font-size: 32px; font-weight: 700; }
+        .form-group { margin-bottom: 22px; position: relative; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 8px; font-weight: 500; color: var(--text-light); }
+        .form-group input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 16px; transition: all 0.3s; }
+        .form-group input:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+        }
+        .auth-container button {
+            width: 100%; padding: 15px; margin-top: 15px;
+            background: var(--primary-color); color: white;
+            border: none; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+        }
+        .auth-container button:hover { transform: translateY(-3px); box-shadow: 0 7px 25px rgba(37, 99, 235, 0.3); background: var(--primary-hover); }
+        .toggle-link { text-align: center; margin-top: 25px; font-size: 14px; cursor: pointer; color: var(--primary-color); font-weight: 500; transition: color 0.3s; }
+        .toggle-link:hover { color: var(--primary-hover); }
+        #signup-view, #otp-section { display: none; }
+        
+        .app-view { display: none; width: 100%; /* REMOVED height: 100vh */ flex-direction: column; }
+        .top-bar { width: 100%; padding: 12px 40px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.3); position: sticky; top: 0; z-index: 100; }
+        
+        .header-title-container { display: flex; align-items: center; gap: 15px; }
+        .header-title { font-size: 24px; font-weight: 700; color: var(--text-dark); }
+        
+        .menu-container { position: relative; display: flex; align-items: center; gap: 15px; }
+        #profile-icon {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: linear-gradient(to right, #3b82f6, #1e40af);
+            color: white; display: none; justify-content: center; align-items: center;
+            font-weight: 600; font-size: 18px; cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.5); transition: transform 0.3s;
+        }
+        #profile-icon:hover { transform: scale(1.1); }
+        .menu-button { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+        .menu-button:hover { background-color: rgba(0,0,0,0.05); }
+        .menu-button svg { width: 28px; height: 28px; stroke: var(--text-light); }
+        .dropdown-menu { display: none; position: absolute; right: 0; top: calc(100% + 10px); background-color: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border: 1px solid var(--border-color); list-style: none; padding: 8px 0; z-index: 101; min-width: 180px; }
+        .dropdown-menu.active { display: block; animation: fadeInUp 0.3s ease-out; }
+        .dropdown-menu li a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: var(--text-dark); text-decoration: none; font-size: 15px; font-weight: 500; transition: all 0.2s; }
+        .dropdown-menu li a:hover { background-color: #f4f4f5; color: var(--primary-color); padding-left: 25px; }
+        .dropdown-menu li a svg { width: 20px; height: 20px; stroke: var(--primary-color); transition: transform 0.3s; }
+        .dropdown-menu li a:hover svg { transform: rotate(5deg) scale(1.1); }
+        
+        /* --- REMOVED overflow-y from here --- */
+        .content-container { padding: 40px; max-width: 900px; margin: 0 auto; width: 100%; }
+        .card {
+            background-color: var(--card-bg); border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05); padding: 40px;
+            margin-bottom: 40px; border: 1px solid rgba(255, 255, 255, 0.7);
+            animation: fadeInUp 0.6s ease-out forwards;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
+        }
+        .card h2 { text-align: left; margin-top: 0; padding-bottom: 15px; margin-bottom: 25px; color: var(--text-dark); font-size: 24px; }
+        .card p { color: var(--text-light); margin-bottom: 25px; font-size: 16px; line-height: 1.6; }
+        
+        .card input[type="text"] {
+            width: 100%; padding: 15px; font-size: 16px;
+            border: 1px solid var(--border-color); border-radius: 10px; transition: all 0.3s ease;
+        }
+        .card input[type="text"]:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .input-group { display: flex; }
+        .input-group input { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+        .input-group button { 
+            border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 15px 30px; 
+            font-size: 16px; font-weight: 600; background: var(--primary-color); color: white; 
+            border: none; cursor: pointer; transition: all 0.3s ease; 
+        }
+        .input-group button:hover { background: var(--primary-hover); }
+        .results-container { margin-top: 25px; background-color: #f8fafc; border-radius: 12px; min-height: 70px; border: 1px solid var(--border-color); text-align: left; color: var(--text-dark); }
+        .result-item { padding: 16px; font-size: 16px; border-bottom: 1px solid var(--border-color); transition: background-color 0.3s; }
+        .result-item:hover { background-color: #f0f9ff; }
+        .result-item:last-child { border-bottom: none; }
+        .result-item .system-tag { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; color: #fff; }
+        .result-item .namaste-tag { background-color: var(--secondary-color); }
+        .result-item .icd-tag { background-color: #0ea5e9; }
+        .message, .error-message { padding: 20px; text-align: center; }
+        .message { color: var(--text-light); font-style: italic; }
+        .error-message { color: #ef4444; font-weight: bold; }
+        .spinner-container { display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .spinner { width: 32px; height: 32px; border: 4px solid rgba(37, 99, 235, 0.2); border-left-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        .watermark {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 14px;
+            color: var(--text-light);
+            opacity: 0.5;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-view" id="login-view">
+        <div class="auth-container">
+            <h2>Welcome Back!</h2>
+            <div class="form-group"><label for="login-contact">Email or Phone</label><input type="text" id="login-contact" placeholder="Enter your contact info"></div>
+            <div class="form-group"><label for="login-password">Password</label><input type="password" id="login-password" placeholder="Enter your password"></div>
+            <button id="login-btn">Login</button>
+            <div class="toggle-link" id="show-signup-link">Create an Account</div>
+        </div>
+    </div>
+
+    <div class="auth-view" id="signup-view">
+        <div class="auth-container">
+            <h2>Create Your Account</h2>
+            <div class="form-group"><label for="signup-name">Full Name</label><input type="text" id="signup-name" placeholder="e.g., Satvik Kumar"></div>
+            <div class="form-group"><label for="signup-contact">Email or Phone</label><input type="text" id="signup-contact" placeholder="This will be your username"></div>
+            <div class="form-group"><label for="signup-password">Password</label><input type="password" id="signup-password" placeholder="Create a strong password"></div>
+            <div id="otp-section">
+                <div class="form-group"><label for="otp-input">Enter OTP</label><input type="text" id="otp-input" placeholder="6-digit code"></div>
+                <button id="verify-otp-btn">Verify & Sign Up</button>
+            </div>
+            <button id="send-otp-btn">Get OTP</button>
+            <div class="toggle-link" id="show-login-link">Already have an account? Login</div>
+        </div>
+    </div>
+
+    <div class="app-view" id="app-view">
+        <header class="top-bar">
+            <div class="header-title-container">
+                <div class="header-title">AYU-Sync</div>
+            </div>
+            <div class="menu-container">
+                <div id="profile-icon"></div>
+                <button class="menu-button" id="menu-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg></button>
+                <ul class="dropdown-menu" id="dropdown-menu">
+                    <li><a href="#"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.484.398.667 1.043.26 1.431l-1.296 2.247a1.125 1.125 0 0 1-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 0 1-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.437-.995s-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 0 1-.26-1.431l1.296-2.247a1.125 1.125 0 0 1 1.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>Settings</a></li>
+                    <li><a href="#" id="logout-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" /></svg>Logout</a></li>
+                </ul>
+            </div>
+        </header>
+        <main class="content-container">
+            <section class="card">
+                <h2>Terminology Lookup</h2>
+                <p>Search for a medical term from either system to see the full mapping.</p>
+                <input type="text" id="lookup-input" placeholder="Start typing a term...">
+                <div id="lookup-results" class="results-container"></div>
+            </section>
+            <section class="card">
+                <h2>Two-Way Code Translator</h2>
+                <p>Enter an exact code from either system to get its direct translation.</p>
+                <div class="input-group"><input type="text" id="translate-input" placeholder="Enter an exact code..."><button id="translate-btn">Translate</button></div>
+                <div id="translate-result" class="results-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div class="watermark">The Synapse</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_BASE_URL = 'http://127.0.0.1:8000';
+            let lookupTimeout;
+            let generatedOTP = "";
+            let tempSignupData = {};
+
+            const loginView = document.getElementById('login-view'), signupView = document.getElementById('signup-view'), appView = document.getElementById('app-view');
+            const loginBtn = document.getElementById('login-btn'), logoutBtn = document.getElementById('logout-btn'), menuBtn = document.getElementById('menu-btn'), dropdownMenu = document.getElementById('dropdown-menu');
+            const showSignupLink = document.getElementById('show-signup-link'), showLoginLink = document.getElementById('show-login-link');
+            const sendOtpBtn = document.getElementById('send-otp-btn'), verifyOtpBtn = document.getElementById('verify-otp-btn'), otpSection = document.getElementById('otp-section');
+            const lookupInput = document.getElementById('lookup-input'), lookupResults = document.getElementById('lookup-results');
+            const translateInput = document.getElementById('translate-input'), translateBtn = document.getElementById('translate-btn'), translateResult = document.getElementById('translate-result');
+            const profileIcon = document.getElementById('profile-icon');
+
+            const showLoginView = () => { loginView.style.display = 'flex'; signupView.style.display = 'none'; appView.style.display = 'none'; };
+            const showSignupView = () => { loginView.style.display = 'none'; signupView.style.display = 'flex'; appView.style.display = 'none'; };
+            const showAppView = () => { loginView.style.display = 'none'; signupView.style.display = 'none'; appView.style.display = 'flex'; };
+            const showSpinner = (container) => { container.innerHTML = `<div class="spinner-container"><div class="spinner"></div></div>`; };
+            const renderResults = (container, htmlContent) => { container.innerHTML = htmlContent; };
+
+            const parseJwt = (token) => {
+                try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; }
+            };
+            const updateProfileIcon = (name) => {
+                if (name) {
+                    profileIcon.textContent = name.charAt(0).toUpperCase();
+                    profileIcon.setAttribute('title', name); 
+                    profileIcon.style.display = 'flex';
+                } else {
+                    profileIcon.style.display = 'none';
+                }
+            };
+
+            const sendOTP = () => {
+                const name = document.getElementById("signup-name").value.trim();
+                const contact = document.getElementById("signup-contact").value.trim();
+                const password = document.getElementById("signup-password").value.trim();
+                if (!name || !contact || !password) { alert("Please fill all fields to sign up."); return; }
+                
+                tempSignupData = { name, contact, password };
+                generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+                alert(`DEMO: Your OTP for ${contact} is: ${generatedOTP}`);
+                
+                otpSection.style.display = "block";
+                sendOtpBtn.style.display = "none";
+            };
+
+            const verifyAndSignup = async () => {
+                const otpInput = document.getElementById("otp-input").value.trim();
+                if (otpInput !== generatedOTP) { alert("Invalid OTP. Please try again."); return; }
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/signup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(tempSignupData)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        alert(`Signup failed: ${data.detail || 'Unknown error'}`);
+                    } else {
+                        alert("Signup successful! Please log in with your new credentials.");
+                        showLoginView();
+                    }
+                } catch (error) { alert("An error occurred during signup."); }
+            };
+
+            const loginUser = async () => {
+                const contact = document.getElementById("login-contact").value.trim();
+                const password = document.getElementById("login-password").value.trim();
+                if (!contact || !password) { alert("Please enter your contact and password."); return; }
+
+                const formData = new URLSearchParams({ username: contact, password });
+                try {
+                    const response = await fetch(`${API_BASE_URL}/token`, { method: 'POST', body: formData });
+                    if (!response.ok) throw new Error('Login failed! Check your credentials.');
+                    const data = await response.json();
+                    localStorage.setItem('user_token', data.access_token);
+                    
+                    const tokenData = parseJwt(data.access_token);
+                    updateProfileIcon(tokenData.name);
+                    showAppView();
+                } catch (error) { alert(error.message); }
+            };
+
+            const logoutUser = () => { 
+                localStorage.removeItem('user_token'); 
+                dropdownMenu.classList.remove('active'); 
+                updateProfileIcon(null);
+                showLoginView(); 
+            };
+            
+            const getAuthHeader = () => { 
+                const token = localStorage.getItem('user_token'); 
+                if (!token) { logoutUser(); return null; } 
+                return { 'Authorization': `Bearer ${token}` }; 
+            };
+            
+            const handleLookup = async () => {
+                const headers = getAuthHeader(); if (!headers) return;
+                const query = lookupInput.value.trim();
+                if (query.length < 2) { renderResults(lookupResults, ''); return; }
+                showSpinner(lookupResults);
+                try {
+                    const response = await fetch(`${API_BASE_URL}/lookup?filter=${encodeURIComponent(query)}`, { headers });
+                    if (response.status === 401) return logoutUser();
+                    if (!response.ok) throw new Error(`API Error`);
+                    const data = await response.json();
+                    if (data.length === 0) {
+                        renderResults(lookupResults, '<p class="message">No matching terms found.</p>');
+                    } else {
+                        const html = data.map(item => `
+                            <div class="result-item">
+                                <div><span class="system-tag namaste-tag">NAMASTE</span> ${item.namaste_term} (<b>${item.namaste_code}</b>)</div>
+                                <div style="margin-top: 8px; padding-left: 20px;"><span class="system-tag icd-tag">ICD-11</span> ${item.icd11_term} (<b>${item.icd11_code}</b>)</div>
+                            </div>`).join('');
+                        renderResults(lookupResults, html);
+                    }
+                } catch (error) { renderResults(lookupResults, '<p class="error-message">Failed to fetch lookup data.</p>'); }
+            };
+            const handleTranslate = async () => {
+                const headers = getAuthHeader(); if (!headers) return;
+                const code = translateInput.value.trim(); if (!code) return;
+                showSpinner(translateResult);
+                try {
+                    const response = await fetch(`${API_BASE_URL}/translate?code=${encodeURIComponent(code)}`, { headers });
+                    if (response.status === 401) return logoutUser();
+                    if (response.status === 404) { renderResults(translateResult, '<p class="message">No translation found.</p>'); return; }
+                    if (!response.ok) throw new Error('Translation failed.');
+                    const data = await response.json();
+                    const html = `<div class="result-item"><b>Original (${data.original_system}):</b> ${data.original_code}<br><b>Translation (${data.translated_system}):</b> ${data.translated_display} (<b>Code:</b> ${data.translated_code})</div>`;
+                    renderResults(translateResult, html);
+                } catch (error) { renderResults(translateResult, '<p class="error-message">Failed to fetch translation.</p>'); }
+            };
+
+            loginBtn.addEventListener('click', loginUser);
+            sendOtpBtn.addEventListener('click', sendOTP);
+            verifyOtpBtn.addEventListener('click', verifyAndSignup);
+            logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logoutUser(); });
+            
+            menuBtn.addEventListener('click', () => dropdownMenu.classList.toggle('active'));
+            
+            document.addEventListener('click', (event) => { 
+                if (!menuBtn.contains(event.target) && !dropdownMenu.contains(event.target)) { 
+                    dropdownMenu.classList.remove('active'); 
+                } 
+            });
+
+            showSignupLink.addEventListener('click', showSignupView);
+            showLoginLink.addEventListener('click', showLoginView);
+            lookupInput.addEventListener('keyup', () => { clearTimeout(lookupTimeout); lookupTimeout = setTimeout(handleLookup, 300); });
+            translateBtn.addEventListener('click', handleTranslate);
+            translateInput.addEventListener('keyup', (event) => { if (event.key === 'Enter') handleTranslate(); });
+
+            const token = localStorage.getItem('user_token');
+            if (token) {
+                const tokenData = parseJwt(token);
+                if (tokenData && tokenData.exp * 1000 > Date.now()) {
+                    updateProfileIcon(tokenData.name);
+                    showAppView();
+                } else {
+                    logoutUser();
+                }
+            } else {
+                showLoginView();
+            }
+        });
+    </script>
+</body>
+</html>
+

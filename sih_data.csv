@@ -1,0 +1,19 @@
+NAMASTE_Code,NAMASTE_Term,ICD11_Code,ICD11_Term
+A01,Jwara,1D01,Fever
+B02,Kasa,1E61,Cough
+C03,Atisara,1B21,Diarrhoea
+D04,Chardi,MD90,Vomiting
+E05,Pratishyaya,CA0A,Common Cold
+F06,Shirashoola,8A80,Headache
+G07,Amlapitta,DD91,Acid Peptic Disease
+H08,Shwasa,CB21,Asthma
+I09,Pandu,3A00,Anaemia
+J10,Raktachapa,BA00,Hypertension
+K11,Madhumeha,5A14,Diabetes Mellitus
+L12,Gridhrasi,ME84.2,Sciatica
+M13,Amavata,FB51.0,Rheumatoid Arthritis
+N14,Twakroga,EE90,Dermatitis
+O15,Udara Shula,MD91,Abdominal Pain
+P16,Vibandha,ME05,Constipation
+Q17,Agnimandya,MD41,Indigestion
+R18,Kamala,DB90,Jaundice
